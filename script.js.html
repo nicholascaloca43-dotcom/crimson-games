@@ -1,0 +1,105 @@
+import * as THREE from 'three';
+
+let scene, camera, renderer, playerCar;
+let cash = 0;
+let carLevel = 0;
+let npcs = [];
+const carPrices = [500, 1500, 5000, 15000];
+
+window.startGame = function() {
+    const user = document.getElementById('username').value;
+    if(!user) return alert("Enter a username!");
+    
+    // Generate Random Password
+    const pass = Math.random().toString(36).substring(2, 9).toUpperCase();
+    alert(`Welcome ${user}!\nYour Random Session Pass: ${pass}`);
+    
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('game-ui').style.display = 'block';
+    initGame();
+};
+
+function initGame() {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87ceeb); // Sky blue
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Light
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 5).target.position.set(0, 0, 0);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040));
+
+    // Road
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(20, 1000), new THREE.MeshPhongMaterial({color: 0x333333}));
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    // Player Car (Simple Box for now)
+    const carGeo = new THREE.BoxGeometry(1, 0.5, 2);
+    const carMat = new THREE.MeshPhongMaterial({color: 0xff0000});
+    playerCar = new THREE.Mesh(carGeo, carMat);
+    playerCar.position.y = 0.25;
+    scene.add(playerCar);
+
+    // Add Buildings and NPCs
+    for(let i = 0; i < 20; i++) {
+        createBuilding(i);
+        createNPC(i);
+    }
+
+    camera.position.set(0, 5, 10);
+    animate();
+}
+
+function createBuilding(i) {
+    const h = Math.random() * 5 + 2;
+    const bGeo = new THREE.BoxGeometry(3, h, 3);
+    const bMat = new THREE.MeshPhongMaterial({color: 0x777777});
+    const b = new THREE.Mesh(bGeo, bMat);
+    b.position.set(i % 2 === 0 ? -6 : 6, h/2, -i * 20);
+    scene.add(b);
+}
+
+function createNPC(i) {
+    const npc = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 2), new THREE.MeshPhongMaterial({color: 0x0000ff}));
+    npc.position.set(Math.random() * 4 - 2, 0.25, -i * 30);
+    scene.add(npc);
+    npcs.push(npc);
+}
+
+window.buyCar = function() {
+    if (cash >= carPrices[carLevel]) {
+        cash -= carPrices[carLevel];
+        carLevel++;
+        playerCar.material.color.setHex(Math.random() * 0xffffff); // Change color on upgrade
+        document.getElementById('cash').innerText = cash;
+        document.getElementById('next-price').innerText = carPrices[carLevel] || "MAX";
+    } else {
+        alert("Not enough cash!");
+    }
+};
+
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // Drive forward automatically
+    playerCar.position.z -= 0.1;
+    camera.position.z = playerCar.position.z + 10;
+    camera.lookAt(playerCar.position);
+
+    // Move NPCs and reset them if they get too far
+    npcs.forEach(npc => {
+        npc.position.z += 0.05; 
+        if(npc.position.z > playerCar.position.z + 10) npc.position.z -= 100;
+    });
+
+    // Earn money by driving
+    cash += 1;
+    document.getElementById('cash').innerText = Math.floor(cash / 10);
+
+    renderer.render(scene, camera);
+}

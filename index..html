@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D City Racer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-screen">
+        <div class="box">
+            <h1>CITY RACER</h1>
+            <input type="text" id="username" placeholder="Enter Username">
+            <button onclick="startGame()">GENERATE PASSWORD & START</button>
+        </div>
+    </div>
+
+    <div id="game-ui" style="display:none;">
+        <div id="stats">Cash: $<span id="cash">0</span></div>
+        <div id="shop">
+            <button onclick="buyCar()">Buy Next Car ($<span id="next-price">500</span>)</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
